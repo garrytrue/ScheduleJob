@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">ChangeTheJobId</string>
+    <string name="execution_windows">Job execution window</string>
+    <string name="hint_window_start">Window start in ms</string>
+    <string name="hint_window_end">Window end in ms</string>
+    <string name="btn_schedule_job">Schedule Job</string>
+    <string name="error_input">Please, check your input</string>
+    <string name="one_second">1000</string>
+    <string name="one_minute">60000</string>
+</resources>
