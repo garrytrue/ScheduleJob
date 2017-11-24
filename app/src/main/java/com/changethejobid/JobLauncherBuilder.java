@@ -1,8 +1,10 @@
 package com.changethejobid;
 
 import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.job.JobScheduler;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.util.Log;
@@ -30,7 +32,9 @@ class JobLauncherBuilder {
             FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
             return new JobLauncherApi20Below(dispatcher);
         }
-        return new AlarmBasedJobLauncher((AlarmManager) (context.getSystemService(Context.ALARM_SERVICE)));
+        // TODO: 24.11.2017 Maybe need create static method in WorkingService to return intent
+        PendingIntent pi = PendingIntent.getService(context, 0, new Intent(context, WorkingService.class), PendingIntent.FLAG_ONE_SHOT);
+        return new AlarmBasedJobLauncher((AlarmManager) (context.getSystemService(Context.ALARM_SERVICE)), pi);
     }
 
     private boolean isApi21OrAbove() {
