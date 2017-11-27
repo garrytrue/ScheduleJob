@@ -47,6 +47,7 @@ class AlarmBasedJobLauncher extends BroadcastReceiver implements JobLauncher {
             Log.d(MainActivity.APP_TAG, "launchJob: Network Available. Start service");
             alarmManager.cancel(pendingIntent); // cancel previous request
             appContext.startService(downloadServiceIntent);
+            appContext.unregisterReceiver(this);
         } else {
             Log.d(MainActivity.APP_TAG, "launchJob: Doesn't have a network");
             registerConnectivityReceiver();
