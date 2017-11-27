@@ -28,11 +28,16 @@ public class WorkingService extends Service implements OnDownloadsFinishedListen
     @Override
     public int onStartCommand(Intent intent, int flags, final int startId) {
         Log.d(MainActivity.APP_TAG, "onStartCommand() called with: intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
-        startForeground(SERVICE_ID, new Notification.Builder(getApplicationContext()).setSmallIcon(R.drawable.ic_launcher_background).build());
-        DownloadManager downloadManager = ((JobsApplication) getApplication()).getDownloadManager();
-        downloadManager.setOnDownloadsFinishedListener(this);
-        downloadManager.startLoadContent();
-        return START_STICKY;
+        if (startId == 1) { // need handle only first start
+            startForeground(SERVICE_ID, new Notification.Builder(getApplicationContext()).setSmallIcon(R.drawable.ic_launcher_background).build());
+            DownloadManager downloadManager = ((JobsApplication) getApplication()).getDownloadManager();
+            downloadManager.setOnDownloadsFinishedListener(this);
+            downloadManager.startLoadContent();
+            return START_STICKY;
+        } else {
+            stopSelf(startId);
+        }
+        return START_NOT_STICKY;
     }
 
     @Override
