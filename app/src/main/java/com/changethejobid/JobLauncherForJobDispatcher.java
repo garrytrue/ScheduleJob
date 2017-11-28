@@ -9,12 +9,12 @@ import static com.firebase.jobdispatcher.Constraint.ON_ANY_NETWORK;
  * @author itorba
  */
 
-public class JobLauncherApi20Below implements JobLauncher {
-    private static final String JOB_TAG = JobLauncherApi20Below.class.getName();
+class JobLauncherForJobDispatcher implements JobLauncher {
+    private static final String JOB_TAG = JobLauncherForJobDispatcher.class.getName();
     private final FirebaseJobDispatcher dispatcher;
     private final Job job;
 
-    public JobLauncherApi20Below(FirebaseJobDispatcher dispatcher) {
+    JobLauncherForJobDispatcher(FirebaseJobDispatcher dispatcher) {
         this.dispatcher = dispatcher;
         job = createJob(this.dispatcher);
     }
@@ -26,7 +26,7 @@ public class JobLauncherApi20Below implements JobLauncher {
 
     private Job createJob(FirebaseJobDispatcher jobDispatcher) {
         return jobDispatcher.newJobBuilder()
-                .setService(JobApi20Below.class)
+                .setService(JobForJobDispatcher.class)
                 .setTag(JOB_TAG)
                 .setConstraints(ON_ANY_NETWORK)
                 .build();

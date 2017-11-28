@@ -12,8 +12,8 @@ import android.util.Log;
  */
 
 @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
-public class JobApi21Above extends JobService {
-    private static final String TAG = "JobApi21Above";
+public class JobForJobScheduler extends JobService {
+    private static final String TAG = "JobForJobScheduler";
 
     @Override
     public boolean onStartJob(JobParameters jobParameters) {

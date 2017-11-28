@@ -14,7 +14,7 @@ public class DownloadablesRepo {
     public DownloadablesRepo() {
         for (int i = 0; i < 5; i++) {
             // need setup result depends on connection
-            downloadables.add(new Downloadable(i % 2 == 0, 60000));
+            downloadables.add(new Downloadable(i % 2 == 0, 30000));
         }
     }
 

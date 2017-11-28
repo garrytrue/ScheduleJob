@@ -10,8 +10,8 @@ import com.firebase.jobdispatcher.JobService;
  * @author itorba
  */
 
-public class JobApi20Below extends JobService {
-    private static final String TAG = "JobApi20Below";
+public class JobForJobDispatcher extends JobService {
+    private static final String TAG = "JobForJobDispatcher";
 
     @Override
     public boolean onStartJob(JobParameters job) {

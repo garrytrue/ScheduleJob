@@ -23,10 +23,10 @@ class JobLauncherBuilder {
     JobLauncher build() {
         if (isApi21OrAbove()) {
             JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
-            return new JobLauncherApi21Above(scheduler);
+            return new JobLauncherForJobScheduler(scheduler);
         } else if (isGoogleApiAvailable(context) && isClassLoaded("com.firebase.jobdispatcher.FirebaseJobDispatcher")) {
             FirebaseJobDispatcher dispatcher = new FirebaseJobDispatcher(new GooglePlayDriver(context));
-            return new JobLauncherApi20Below(dispatcher);
+            return new JobLauncherForJobDispatcher(dispatcher);
         }
         return new AlarmBasedJobLauncher(context);
     }
