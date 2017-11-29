@@ -12,12 +12,14 @@ import com.changethejobid.network.DownloadablesRepo;
 public class JobsApplication extends Application {
     private DownloadManager downloadManager;
     private DownloadablesRepo downloadablesRepo;
+    private JobStateHolder jobStateHolder;
 
     @Override
     public void onCreate() {
         super.onCreate();
         downloadablesRepo = new DownloadablesRepo();
         downloadManager = new DownloadManager(downloadablesRepo);
+        jobStateHolder = new JobStateHolder();
     }
 
     public DownloadManager getDownloadManager() {
@@ -26,5 +28,9 @@ public class JobsApplication extends Application {
 
     public DownloadablesRepo getDownloadablesRepo() {
         return downloadablesRepo;
+    }
+
+    public JobStateHolder getJobStateHolder() {
+        return jobStateHolder;
     }
 }

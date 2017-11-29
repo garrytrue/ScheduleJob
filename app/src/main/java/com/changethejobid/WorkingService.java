@@ -17,6 +17,13 @@ import com.changethejobid.network.OnDownloadsFinishedListener;
 
 public class WorkingService extends Service implements OnDownloadsFinishedListener {
     private static final int SERVICE_ID = 255;
+    private JobStateHolder jobStateHolder;
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        jobStateHolder = ((JobsApplication) getApplication()).getJobStateHolder();
+    }
 
     @Nullable
     @Override
@@ -28,6 +35,7 @@ public class WorkingService extends Service implements OnDownloadsFinishedListen
     @Override
     public int onStartCommand(Intent intent, int flags, final int startId) {
         Log.d(MainActivity.APP_TAG, "onStartCommand() called with: intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
+        jobStateHolder = ((JobsApplication) getApplication()).getJobStateHolder();
         if (startId == 1) { // need handle only first start
             startForeground(SERVICE_ID, new Notification.Builder(getApplicationContext()).setSmallIcon(R.drawable.ic_launcher_background).build());
             DownloadManager downloadManager = ((JobsApplication) getApplication()).getDownloadManager();
@@ -42,8 +50,9 @@ public class WorkingService extends Service implements OnDownloadsFinishedListen
 
     @Override
     public void onDestroy() {
-        super.onDestroy();
         Log.d(MainActivity.APP_TAG, "onDestroy() called");
+        jobStateHolder.removeJob(26041983);
+        super.onDestroy();
     }
 
     private void stopMeNow() {
@@ -56,14 +65,17 @@ public class WorkingService extends Service implements OnDownloadsFinishedListen
         });
     }
 
+    // TODO: 29.11.2017 Hardcoded JOB_ID
     @Override
     public void onAllDownloadFinished() {
+        jobStateHolder.updateJobState(26041983, JobState.FINISHED_WITH_SUCCESS);
         stopMeNow();
     }
 
     @Override
     public void onFinishedWithError() {
         // need reschedule Job, and finish service
+        jobStateHolder.updateJobState(26041983, JobState.FINISHED_WITH_ERROR);
         stopMeNow();
     }
 }

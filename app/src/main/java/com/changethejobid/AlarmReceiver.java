@@ -19,7 +19,6 @@ public class AlarmReceiver extends BroadcastReceiver {
         Log.d(MainActivity.APP_TAG, "AlarmReceiver onReceive() intent = [" + intent + "]");
         new JobForAlarmManager().enqueueWorkWithData(context,
                 AlarmBasedJobLauncher.JOB_ID,
-                intent.getIntExtra(JobForAlarmManager.ATTEMPTS_EXTRA, JobForAlarmManager.UNKNOWN_NUMBER_OF_ATTEMPTS),
-                intent.getBooleanExtra(JobForAlarmManager.IS_JOB_WORKING_EXTRA, false));
+                intent.getIntExtra(JobForAlarmManager.ATTEMPTS_EXTRA, JobForAlarmManager.DEFAULT_VALUE));
     }
 }
