@@ -19,24 +19,91 @@ import java.util.concurrent.TimeUnit;
  */
 
 public class JobForAlarmManager extends JobIntentService {
+    static final String ATTEMPTS_EXTRA = JobForAlarmManager.class.getName() + ".extra.ATTEMPTS";
+    static final String IS_JOB_WORKING_EXTRA = JobForAlarmManager.class.getName() + ".extra.IS_JOB_WORKING";
+    private static final String STARTUP_ACTION = JobForAlarmManager.class.getName() + ".action.STARTUP";
+    static final int UNKNOWN_NUMBER_OF_ATTEMPTS = -1;
+    private static final long INITIAL_BACKOFF = TimeUnit.SECONDS.toMillis(30);
+    private static final long MAX_BACKOFF = TimeUnit.MINUTES.toMillis(15);
 
     void enqueueWork(Context context, int jobId) {
-        enqueueWork(context, JobForAlarmManager.class, jobId, new Intent(""));
+        enqueueWork(context, JobForAlarmManager.class, jobId, getDefaultIntent(UNKNOWN_NUMBER_OF_ATTEMPTS));
+    }
+
+    void enqueueWorkWithData(Context context, int jobId, int attempts, boolean isJobWorking) {
+        enqueueWork(context, JobForAlarmManager.class, jobId, getDefaultIntent(attempts).putExtra(IS_JOB_WORKING_EXTRA, isJobWorking));
+    }
+
+    private Intent getDefaultIntent(int attempts) {
+        Intent intent = new Intent(STARTUP_ACTION);
+        intent.putExtra(ATTEMPTS_EXTRA, attempts);
+        return intent;
     }
 
     @Override
     protected void onHandleWork(@NonNull Intent intent) {
-        Log.d(MainActivity.APP_TAG, "onHandleWork() called with: intent = [" + intent + "]");
-        if (hasConnection(getApplicationContext())) {
-            // need stop scheduled alarm
-            getApplicationContext().sendBroadcast(new Intent(AlarmReceiver.RESET_ALARM_ACTION));
-            Log.d(MainActivity.APP_TAG, "launchJob: Network Available. Start service");
-            // need start job service
-            getApplicationContext().startService(new Intent(getApplicationContext(), WorkingService.class));
-        } else {
-            Log.d(MainActivity.APP_TAG, "launchJob: Doesn't have a network. Schedule alarm");
-            scheduleAlarm(getApplicationContext());
+        Log.d(MainActivity.APP_TAG, "JobForAlarmManager onHandleWork() called");
+        boolean isJobWorkingNow = intent.getBooleanExtra(IS_JOB_WORKING_EXTRA, false);
+        Log.d(MainActivity.APP_TAG, "JobForAlarmManager is job working now = [" + isJobWorkingNow + "]");
+        if (STARTUP_ACTION.equals(intent.getAction())) {
+            if (hasConnection(getApplicationContext()) && !isJobWorkingNow) {
+                // need stop scheduled alarm
+                cancelAlarm(getApplicationContext());
+                Log.d(MainActivity.APP_TAG, "JobForAlarmManager launchJob: Network Available. Start service");
+                // need start job service
+                getApplicationContext().startService(new Intent(getApplicationContext(), WorkingService.class));
+            } else {
+                Log.d(MainActivity.APP_TAG, "JobForAlarmManager launchJob: Doesn't have a network. Schedule alarm");
+                scheduleAlarm(getApplicationContext(), intent);
+            }
         }
+    }
+
+    private void scheduleAlarm(Context context, Intent intent) {
+        int numberOfFailures = extractNumberOfFailures(intent);
+        long delay = calculateDelay(numberOfFailures);
+        numberOfFailures = increaseFailuresIfNeed(delay, numberOfFailures);
+        Log.d(MainActivity.APP_TAG, "JobForAlarmManager. new number of failures = [" + numberOfFailures + "]");
+        Intent alarmIntent = new Intent(AlarmReceiver.SCHEDULE_ALARM_ACTION);
+        alarmIntent.putExtra(ATTEMPTS_EXTRA, numberOfFailures);
+        alarmIntent.putExtra(IS_JOB_WORKING_EXTRA, false);
+        PendingIntent pendingIntent = createPendingIntent(context, alarmIntent, true);
+        Log.d(MainActivity.APP_TAG, "JobForAlarmManager. Reschedule with delay = [" + delay + "], new number of failures = [" + numberOfFailures + "]");
+        getAlarmManager(context).set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + delay, pendingIntent);
+    }
+
+    private void cancelAlarm(Context context) {
+        Intent alarmIntent = new Intent(AlarmReceiver.SCHEDULE_ALARM_ACTION);
+        alarmIntent.putExtra(IS_JOB_WORKING_EXTRA, true);
+        PendingIntent pendingIntent = createPendingIntent(context, alarmIntent, false);
+        getAlarmManager(context).cancel(pendingIntent);
+    }
+
+    private int extractNumberOfFailures(Intent intent) {
+        int numberOfFailures = intent.getIntExtra(ATTEMPTS_EXTRA, UNKNOWN_NUMBER_OF_ATTEMPTS);
+        return numberOfFailures == UNKNOWN_NUMBER_OF_ATTEMPTS ? 1 : numberOfFailures;
+    }
+
+    private PendingIntent createPendingIntent(Context context, Intent intent, boolean repeating) {
+        return PendingIntent.getBroadcast(context, 0, intent, createPendingIntentFlags(repeating));
+    }
+
+    protected int createPendingIntentFlags(boolean repeating) {
+        int flags = PendingIntent.FLAG_UPDATE_CURRENT;
+        if (!repeating) {
+            flags |= PendingIntent.FLAG_ONE_SHOT;
+        }
+        return flags;
+    }
+
+    private long calculateDelay(int numberOfFailures) {
+        return (long) (INITIAL_BACKOFF * Math.pow(2, numberOfFailures - 1.0));
+    }
+
+    private int increaseFailuresIfNeed(long delay, int numberOfFailures) {
+        if (delay < MAX_BACKOFF) {
+            return ++numberOfFailures;
+        } else return numberOfFailures;
     }
 
     @Nullable
@@ -51,11 +118,6 @@ public class JobForAlarmManager extends JobIntentService {
         return networkInfo != null && networkInfo.isConnectedOrConnecting();
     }
 
-    private void scheduleAlarm(Context context) {
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, new Intent(AlarmReceiver.SCHEDULE_ALARM_ACTION), PendingIntent.FLAG_ONE_SHOT);
-        getAlarmManager(context).set(AlarmManager.ELAPSED_REALTIME_WAKEUP, SystemClock.elapsedRealtime() + TimeUnit.SECONDS.toMillis(30), pendingIntent);
-    }
-
     private AlarmManager getAlarmManager(Context context) {
         return (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
     }
@@ -65,4 +127,6 @@ public class JobForAlarmManager extends JobIntentService {
         Log.d(MainActivity.APP_TAG, "JobForAlarmManager onDestroy() called");
         super.onDestroy();
     }
+
+
 }
