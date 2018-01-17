@@ -20,8 +20,9 @@ android {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    implementation 'com.android.support:appcompat-v7:27.0.1'
-    implementation 'com.android.support:design:27.0.1'
+    implementation 'com.android.support:appcompat-v7:27.0.2'
+    implementation 'com.android.support:design:27.0.2'
     implementation 'com.android.support.constraint:constraint-layout:1.0.2'
     implementation 'com.firebase:firebase-jobdispatcher:0.8.4' // could not find latest version 0.8.5
+    implementation 'com.evernote:android-job:1.2.2'
 }

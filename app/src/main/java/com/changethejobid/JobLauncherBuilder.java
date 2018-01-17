@@ -13,14 +13,14 @@ import com.firebase.jobdispatcher.GooglePlayDriver;
  * @author itorba
  */
 
-class JobLauncherBuilder {
+public class JobLauncherBuilder {
     private final Context context;
 
-    JobLauncherBuilder(Context context) {
+    public JobLauncherBuilder(Context context) {
         this.context = context;
     }
 
-    JobLauncher build() {
+   protected JobLauncher build() {
         if (isApi21OrAbove()) {
             JobScheduler scheduler = (JobScheduler) context.getSystemService(Context.JOB_SCHEDULER_SERVICE);
             return new JobLauncherForJobScheduler(scheduler);

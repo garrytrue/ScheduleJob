@@ -2,6 +2,8 @@ package com.changethejobid;
 
 import android.util.Log;
 
+import com.changethejobid.evernotes.EvernoteJobLauncherBuilder;
+
 
 /**
  * @author itorba
@@ -16,7 +18,9 @@ public class PresenterMainActivity implements MainContract.MainPresenter {
     @Override
     public void bindView(MainContract.MainView view) {
         this.view = view;
-        jobLauncher = new JobLauncherBuilder(this.view.getAppContext()).build();
+//        jobLauncher = new JobLauncherBuilder(this.view.getAppContext()).build();
+        // testing new evernote lib
+        jobLauncher = new EvernoteJobLauncherBuilder(this.view.getAppContext()).build();
     }
 
     @Override

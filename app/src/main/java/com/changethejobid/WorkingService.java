@@ -1,8 +1,12 @@
 package com.changethejobid;
 
 import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.Service;
 import android.content.Intent;
+import android.graphics.Color;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
@@ -17,6 +21,8 @@ import com.changethejobid.network.OnDownloadsFinishedListener;
 
 public class WorkingService extends Service implements OnDownloadsFinishedListener {
     private static final int SERVICE_ID = 255;
+    public static final String CHANNEL_ID = "ChangeJobId";
+    public static final String CHANNEL_NAME = "MyApp";
     private JobStateHolder jobStateHolder;
 
     @Override
@@ -37,7 +43,7 @@ public class WorkingService extends Service implements OnDownloadsFinishedListen
         Log.d(MainActivity.APP_TAG, "onStartCommand() called with: intent = [" + intent + "], flags = [" + flags + "], startId = [" + startId + "]");
         jobStateHolder = ((JobsApplication) getApplication()).getJobStateHolder();
         if (startId == 1) { // need handle only first start
-            startForeground(SERVICE_ID, new Notification.Builder(getApplicationContext()).setSmallIcon(R.drawable.ic_launcher_background).build());
+            startForeground(SERVICE_ID, createNotification());
             DownloadManager downloadManager = ((JobsApplication) getApplication()).getDownloadManager();
             downloadManager.setOnDownloadsFinishedListener(this);
             downloadManager.startLoadContent();
@@ -77,5 +83,25 @@ public class WorkingService extends Service implements OnDownloadsFinishedListen
         // need reschedule Job, and finish service
         jobStateHolder.updateJobState(26041983, JobState.FINISHED_WITH_ERROR);
         stopMeNow();
+    }
+
+    private Notification createNotification() {
+        Notification.Builder builder = new Notification.Builder(getApplicationContext());
+        createNotificationChannel(builder);
+        builder.setSmallIcon(R.drawable.ic_launcher_background);
+        return builder.build();
+    }
+
+    private void createNotificationChannel(Notification.Builder builder) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel notificationChannel = new NotificationChannel(CHANNEL_ID, CHANNEL_NAME, NotificationManager.IMPORTANCE_DEFAULT);
+            notificationChannel.enableLights(true);
+            notificationChannel.setLightColor(Color.RED);
+            notificationChannel.setShowBadge(true);
+            notificationChannel.setLockscreenVisibility(Notification.VISIBILITY_PUBLIC);
+            NotificationManager manager = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
+            manager.createNotificationChannel(notificationChannel);
+            builder.setChannelId(CHANNEL_ID);
+        }
     }
 }
